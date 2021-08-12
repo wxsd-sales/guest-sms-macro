@@ -2,34 +2,71 @@ import xapi from 'xapi';
 
 
 // Add your own PMR information here
-const PMR = "MY_PMR@webex.com";
+const PMR = '#########@webex.com";
+// Specify the default duration in hours
+const Default_Duration = '1'; 
+// Customise your SMS message
+const Message = 'Please join my meeting at: ';
 
 // Add your own IMIConnect Webhook URL here
-const URL = 'https://hooks-us.imiconnect.io/events/#########'
+const IMI_URL = 'https://hooks-us.imiconnect.io/events/#########'
+const GuestURL = 'https://wxsd.wbx.ninja/wxsd-guest-demo/create_url';
 
-const CONTENT_TYPE = "Content-Type: application/json";
+
+// This is the data we will be sending ot IMI Connect
+const data = {
+        expire_hours: Default_Duration
+      , sip_target: PMR
+    };
+
+// Temporary values for alternative messages
 let tempPMR = '';
 let tempNumber = '';
 
 
+// This function requests the guest link
+function getGuestLink(Num, PMR){
+
+  console.log('Num: ' + Num + ' PMR: ' + PMR);
+  xapi.command('HttpClient Post', { 
+    Header: ["Content-Type: application/json"], 
+    Url: GuestURL,
+    ResultBody: 'plaintext'
+  }, 
+    JSON.stringify(data))
+  .then((result) => {
+      
+    var body = JSON.parse(result.Body)
+    console.log(body.urls.Guest[0]);
+    sendInvite(Num, body.urls.Guest[0]);
+  })
+  .catch((err) => {
+    console.log("Failed: " + JSON.stringify(err));
+    console.log(err);
+    // Should close panel and notifiy errors
+  });
+}
+
+
 // This function prepares the invite message and sends it to the
-// imiconnect SMS service and the target mobile number
-function sendInvite(numb, invite){
+// imiconnect SMS service to the target mobile number
+function sendInvite(Num, Link){
 
   console.log('Sending Invite');
-  console.log('Number received: ' + numb);
-  console.log('Invite received: ' + invite);
+  console.log('Number received: ' + Num);
+  console.log('Link received: ' + Link);
 
-  invite = 'Please join my meeting at: ' + invite;
+  let invite = Message + Link;
+  console.log(invite);
 
   var messagecontent = {
-      number: numb
+      number: Num
     , message: invite
   };
 
   xapi.command('HttpClient Post', {
-    'Header': [CONTENT_TYPE], 
-    'Url': URL
+    Header: ["Content-Type: application/json"], 
+    Url: IMI_URL
     }, 
       JSON.stringify(messagecontent))
     .then((result) => {
@@ -110,6 +147,8 @@ xapi.event.on('UserInterface Message TextInput Response', (event) => {
 });
 
 
+
+
 // Handle all the Text Inputs
 xapi.event.on('UserInterface Message Prompt Response', (event) => {
   switch(event.FeedbackId){
@@ -135,7 +174,7 @@ xapi.event.on('UserInterface Message Prompt Response', (event) => {
           break;
         case '3':
           
-          sendInvite(tempNumber, ((tempPMR != '') ? tempPMR : PMR));
+          getGuestLink(tempNumber, ((tempPMR != '') ? tempPMR : PMR));
           tempNumber = '';
           tempPMR = '';
           break;
