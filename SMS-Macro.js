@@ -2,65 +2,81 @@ import xapi from 'xapi';
 
 
 // Add your own PMR information here
-const PMR = '#########@webex.com";
+const PMR = "#########@webex.com";
+
 // Specify the default duration in hours
-const Default_Duration = '1'; 
+const DEFAULT_DURATION = '1'; 
+
 // Customise your SMS message
-const Message = 'Please join my meeting at: ';
+const MESSAGE = 'Please join my meeting at: ';
 
 // Add your own IMIConnect Webhook URL here
-const IMI_URL = 'https://hooks-us.imiconnect.io/events/#########'
-const GuestURL = 'https://wxsd.wbx.ninja/wxsd-guest-demo/create_url';
+const IMI_URL = 'https://hooks-us.imiconnect.io/events/########'
+const GUEST_URL = 'https://wxsd.wbx.ninja/wxsd-guest-demo/create_url';
 
 
-// This is the data we will be sending ot IMI Connect
-const data = {
-        expire_hours: Default_Duration
-      , sip_target: PMR
-    };
-
-// Temporary values for alternative messages
+// Temporary values for alternative values
 let tempPMR = '';
 let tempNumber = '';
 
+let serialNumber = '';
+xapi.Status.SystemUnit.Hardware.Module.SerialNumber
+      .get()
+      .then(value => {serialNumber = value;});
 
 // This function requests the guest link
-function getGuestLink(Num, PMR){
+function getGuestLink(number, pmr){
 
-  console.log('Num: ' + Num + ' PMR: ' + PMR);
+  console.log('Number: ' + number + ' Link: ' + pmr);
+
+  let data = {
+        expire_hours: DEFAULT_DURATION
+      , sip_target: pmr
+      , serial_number: serialNumber
+      };
+
+  console.log(data);
+
   xapi.command('HttpClient Post', { 
     Header: ["Content-Type: application/json"], 
-    Url: GuestURL,
+    Url: GUEST_URL,
     ResultBody: 'plaintext'
   }, 
     JSON.stringify(data))
   .then((result) => {
-      
+    //console.log(result.Body);
     var body = JSON.parse(result.Body)
-    console.log(body.urls.Guest[0]);
-    sendInvite(Num, body.urls.Guest[0]);
+    //console.log(body.urls.Guest[0]);
+    sendInvite(number, body.urls.Guest[0]);
   })
   .catch((err) => {
     console.log("Failed: " + JSON.stringify(err));
     console.log(err);
     // Should close panel and notifiy errors
+
+    xapi.Command.UserInterface.Message.Alert.Display
+        ({ Duration: 3
+        , Text: 'Could not generate meeting link'
+        , Title: 'Failure'});
   });
 }
 
 
 // This function prepares the invite message and sends it to the
 // imiconnect SMS service to the target mobile number
-function sendInvite(Num, Link){
+function sendInvite(number, link){
 
   console.log('Sending Invite');
-  console.log('Number received: ' + Num);
-  console.log('Link received: ' + Link);
+  console.log('Number received: ' + number);
+  console.log('Link received: ' + link);
+  console.log('Current state of PMR: ' + PMR);
 
-  let invite = Message + Link;
+  let invite = MESSAGE + link;
   console.log(invite);
 
-  var messagecontent = {
-      number: Num
+  // Prepare the content to be sent to IMIConnect
+  var messageContent = {
+      number: number
     , message: invite
   };
 
@@ -68,13 +84,17 @@ function sendInvite(Num, Link){
     Header: ["Content-Type: application/json"], 
     Url: IMI_URL
     }, 
-      JSON.stringify(messagecontent))
+      JSON.stringify(messageContent))
     .then((result) => {
       console.log("success: " + result.StatusCode)
-      xapi.Command.UserInterface.Message.Alert.Display
-        ({ Duration: 3
-        , Text: 'Invite sent successfully'
-        , Title: 'Success'});
+   
+      xapi.command("UserInterface Message Prompt Display", {
+        Title: "Invite sent successfully"
+      , Text: 'Would you like to automatically join: ' + ((tempPMR != '') ? tempPMR : PMR)
+      , FeedbackId: 'join_meeting'
+      , 'Option.1': 'Yes, join meeting'
+      , 'Option.2':'No, I will join later'
+      }).catch((error) => { console.error(error); });
     })
     .catch((err) => {
       console.log("failed: " + err.message)
@@ -105,7 +125,7 @@ xapi.event.on('UserInterface Extensions Panel Clicked', (event) => {
 });
 
 
-// Handle all the SMS Invite preperation screens
+// Handle all the SMS Invite preparation screens
 xapi.event.on('UserInterface Message TextInput Response', (event) => {
   switch(event.FeedbackId){
     case 'enter_number':
@@ -143,10 +163,9 @@ xapi.event.on('UserInterface Message TextInput Response', (event) => {
         }).catch((error) => { console.error(error); });
       }
       break;
+  
   }
 });
-
-
 
 
 // Handle all the Text Inputs
@@ -154,7 +173,7 @@ xapi.event.on('UserInterface Message Prompt Response', (event) => {
   switch(event.FeedbackId){
     case 'create_invite':
       switch(event.OptionId){
-        case '1':
+        case '1':   // This choice handles a new number input
           xapi.command('UserInterface Message TextInput Display', {
             FeedbackId: 'enter_number',
             Text: 'Please enter the mobile number to invite',
@@ -163,7 +182,7 @@ xapi.event.on('UserInterface Message Prompt Response', (event) => {
             Duration: 0,
           }).catch((error) => { console.error(error); });
           break;
-        case '2':
+        case '2':   // This choice handles a new PMR input
           xapi.command('UserInterface Message TextInput Display', {
             FeedbackId: 'enter_pmr',
             Text: 'Enter alternative PMR',
@@ -172,11 +191,24 @@ xapi.event.on('UserInterface Message Prompt Response', (event) => {
             Duration: 0,
           }).catch((error) => { console.error(error); });
           break;
-        case '3':
-          
+        case '3':   // This choice sends the meeting invitation
+
+          console.log('PMR Before doing anything: ' + PMR);          
           getGuestLink(tempNumber, ((tempPMR != '') ? tempPMR : PMR));
-          tempNumber = '';
-          tempPMR = '';
+          break;
+      }
+      break;
+    case 'join_meeting':
+      switch(event.OptionId){
+        case '1': 
+          console.log('PMR:' + PMR);
+          console.log('Dialling the PMR: ' + ((tempPMR != '') ? tempPMR : PMR));
+          xapi.command('Dial',{
+            Number: ((tempPMR != '') ? tempPMR : PMR)
+          })
+          break;
+        case '2':
+          console.log('Not dialling PMR');
           break;
       }
       break;
