@@ -23,8 +23,9 @@ The SMS invite macro allows you to send a meeting invitation meeting from your R
 ### Hit send:
 ![image](https://user-images.githubusercontent.com/21026209/129075140-ebdf310e-c529-4133-9337-dc5f6509af4a.png)
 
-### Confirmation of a successful message:
-![image](https://user-images.githubusercontent.com/21026209/129075654-aeabc876-bb94-4e1d-99de-d30c273ef42b.png)
+### Confirmation invite was sent successfully and an option to automatically join the PMR:
+![image](https://user-images.githubusercontent.com/21026209/130437964-d5440801-8190-4429-b397-0c55d177ad42.png)
+
 
 
 ## Requirements
