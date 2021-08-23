@@ -19,10 +19,27 @@ const GUEST_URL = 'https://wxsd.wbx.ninja/wxsd-guest-demo/create_url';
 let tempPMR = '';
 let tempNumber = '';
 
+// Save the serial number for logging
 let serialNumber = '';
 xapi.Status.SystemUnit.Hardware.Module.SerialNumber
       .get()
       .then(value => {serialNumber = value;});
+
+
+// Add the Button to the touch panel
+xapi.command('UserInterface Extensions Panel Save', {
+    PanelId: 'sms_invite'
+}, `<Extensions>
+  <Version>1.8</Version>
+  <Panel>
+    <Order>1</Order>
+    <Type>Statusbar</Type>
+    <Icon>Input</Icon>
+    <Color>#A866FF</Color>
+    <Name>SMS Invite</Name>
+    <ActivityType>Custom</ActivityType>
+  </Panel>
+</Extensions>`);
 
 // This function requests the guest link
 function getGuestLink(number, pmr){
