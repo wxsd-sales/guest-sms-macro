@@ -31,20 +31,13 @@ The SMS invite macro allows you to send a meeting invitation meeting from your R
 ## Requirements
 
 1. A Cisco Webex Device running RoomOS or CE9.6 or newer
-2. HttpClient Mode enabled on the device
+2. A instance of imiconnect with a webhook and SMS service
 
+## Getting your Webhook URL from imiconnect
 
-
-### Enabling HttpCient Mode
-
-#### Via the Webe Interface
-
-1. Log into the web interface using your admin credentials and enable as per the image below
-
-![image](https://user-images.githubusercontent.com/21026209/129081620-605edb82-59ee-423f-8cee-82df1b4c9fca.png)
-
-2. Log into the device via SSH and run the command 'xConfiguration HttpClient Mode: On'
-
-![image](https://user-images.githubusercontent.com/21026209/129081733-4288bbf9-c5d1-4183-923d-c2cfea03248b.png)
+1. Log into your imiconnect instance and create a flow which connects a webhook to an SMS service
+![image](https://user-images.githubusercontent.com/21026209/135327888-da36290f-2b67-44ea-baec-6881695ca287.png)
+2. Obtain your Webhook URL and use this in the Macro
+![image](https://user-images.githubusercontent.com/21026209/135330888-bbfca70b-8d70-4e47-9afa-345e81d64791.png)
 
 
