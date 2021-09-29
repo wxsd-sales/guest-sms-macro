@@ -2,7 +2,7 @@ import xapi from 'xapi';
 
 
 // Add your own PMR information here
-const PMR = "#################";
+const PMR = '##########';
 
 // Specify the default duration in hours
 const DEFAULT_DURATION = '1'; 
@@ -10,9 +10,11 @@ const DEFAULT_DURATION = '1';
 // Customise your SMS message
 const MESSAGE = 'Please join my meeting at: ';
 
-// Add your own IMIConnect Webhook URL here
-const IMI_URL = 'https://hooks-us.imiconnect.io/events/#########'
-const GUEST_URL = 'https://wxsd.wbx.ninja/wxsd-guest-demo/create_url';
+// Add your own imiconnect Webhook URL
+const IMI_URL = 'https://hooks-us.imiconnect.io/events/#######';
+
+// Add your imiconnect JWT
+const IMI_JWT = '######';
 
 // Choose if the user can enter an alternative PMR 
 const ALLOW_ALTERNATIVE_PMR = true;
@@ -21,6 +23,9 @@ const ALLOW_ALTERNATIVE_PMR = true;
 ///////////////////////////////////
 // Do not change anything below
 ///////////////////////////////////
+
+// This is the guest link generator URL
+const GUEST_URL = 'https://wxsd.wbx.ninja/wxsd-guest-demo/create_url';
 
 // Temporary values for alternative values
 let tempPMR = '';
@@ -33,6 +38,7 @@ xapi.Status.SystemUnit.Hardware.Module.SerialNumber
       .get()
       .then(value => {serialNumber = value;});
 
+
 // Enable the HTTP client if it isn't already
 xapi.Config.HttpClient.Mode.get().then(value => {
   
@@ -44,7 +50,6 @@ xapi.Config.HttpClient.Mode.get().then(value => {
   }
 
 });
-
 
 // Add the Button to the touch panel
 xapi.command('UserInterface Extensions Panel Save', {
@@ -89,8 +94,8 @@ function getGuestLink(number, pmr){
   .catch((err) => {
     console.log("Failed: " + JSON.stringify(err));
     console.log(err);
+        
     // Should close panel and notifiy errors
-
     xapi.Command.UserInterface.Message.Alert.Display
         ({ Duration: 3
         , Text: 'Could not generate meeting link'
@@ -118,8 +123,9 @@ function sendInvite(number, link){
   };
 
   xapi.command('HttpClient Post', {
-    Header: ["Content-Type: application/json"], 
-    Url: IMI_URL
+    Header: ["Content-Type: application/json", 
+            "Authorization: Bearer "+ IMI_JWT], 
+    Url: IMI_URL,
     }, 
       JSON.stringify(messageContent))
     .then((result) => {
@@ -144,6 +150,8 @@ function sendInvite(number, link){
 
 }
 
+
+// Check if we are in a call 
 async function checkAnswerState(){
 
   try{
@@ -152,6 +160,9 @@ async function checkAnswerState(){
     callState = "NoCall";
   }
 
+  // If we are in an answered state then we have an active call
+  // We can get the current SIP URI of the call and use that
+  // For the guest link generation
   if(callState == 'Answered'){
 
     let callback = await xapi.Status.Call.CallbackNumber.get();
@@ -171,23 +182,21 @@ async function checkAnswerState(){
   }else{
   
     console.log('Not in a call');
-  
+
+    let cmdObject = {
+            Title: "SMS Invite"
+          , Text: 'Please enter the number you wish to invite'
+          , FeedbackId: 'create_invite'
+          , 'Option.1':'Tap to enter number'
+        }
+    let uiMessage = "UserInterface Message Prompt Display";
     if(ALLOW_ALTERNATIVE_PMR){
-      xapi.command("UserInterface Message Prompt Display", {
-            Title: "SMS Invite"
-          , Text: 'Please enter the number you wish to invite'
-          , FeedbackId: 'create_invite'
-          , 'Option.1':'Tap to enter number'
-          , 'Option.2':'Tap to change invite from: '+PMR
-        }).catch((error) => { console.error(error); });
+      cmdObject['Option.2'] = 'Tap to change invite from: '+PMR;
+      xapi.command(uiMessage, cmdObject).catch((error) => { console.error(error); });
     }else {
-      xapi.command("UserInterface Message Prompt Display", {
-            Title: "SMS Invite"
-          , Text: 'Please enter the number you wish to invite'
-          , FeedbackId: 'create_invite'
-          , 'Option.1':'Tap to enter number'
-        }).catch((error) => { console.error(error); });
-    }
+      xapi.command(uiMessage, cmdObject).catch((error) => { console.error(error); });
+    } 
+
   }
 }
 
@@ -232,28 +241,25 @@ xapi.event.on('UserInterface Message TextInput Response', (event) => {
       }
       break;
     case 'enter_pmr':
+
       tempPMR = event.Text;
       console.log('PMR Entered: ' + tempPMR)
-      console.log('Temp Number: ' +tempNumber)
-      if(tempNumber === ''){
-        xapi.command("UserInterface Message Prompt Display", {
-            Title: "SMS Invite"
-          , Text: 'Please enter the number you wish to invite'
-          , FeedbackId: 'create_invite'
-          , 'Option.1': 'Tap to enter number'
-          , 'Option.2':'Tap to change invite from: '+ tempPMR
-        }).catch((error) => { console.error(error); });
-      } else {
-        xapi.command("UserInterface Message Prompt Display", {
+      console.log('Temp Number: ' +tempNumber);
+      let uiMessage = "UserInterface Message Prompt Display";
+      let cmdObject  = {
           Title: "SMS Invite"
         , Text: 'Please enter the number you wish to invite'
         , FeedbackId: 'create_invite'
         , 'Option.1': 'Tap to enter number'
         , 'Option.2':'Tap to change invite from: '+ tempPMR
-        , 'Option.3':'Send Invite'
-        }).catch((error) => { console.error(error); });
+        };
+      if(tempNumber === ''){
+        xapi.command(uiMessage, cmdObject).catch((error) => { console.error(error); });
+      } else {
+        cmdObject['Option.3'] = 'Send Invite';
+        xapi.command(uiMessage, cmdObject).catch((error) => { console.error(error); });
       }
-      break;
+      break; 
   
   }
 });
