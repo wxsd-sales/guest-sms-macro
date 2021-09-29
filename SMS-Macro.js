@@ -33,6 +33,18 @@ xapi.Status.SystemUnit.Hardware.Module.SerialNumber
       .get()
       .then(value => {serialNumber = value;});
 
+// Enable the HTTP client if it isn't already
+xapi.Config.HttpClient.Mode.get().then(value => {
+  
+  console.log('HTTP Client is : ' + value);
+
+  if(value == 'Off'){
+    console.log('Enabling HTTP Client');
+    xapi.Config.HttpClient.Mode.set('On');
+  }
+
+});
+
 
 // Add the Button to the touch panel
 xapi.command('UserInterface Extensions Panel Save', {
