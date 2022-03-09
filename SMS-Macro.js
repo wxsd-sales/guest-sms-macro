@@ -2,23 +2,20 @@ import xapi from 'xapi';
 
 
 // Add your own PMR information here
-const PMR_URL = '<PMR URL>';
-const MOBILE = '<Mobile NumberL>';
+const PMR_URL = 'https://<example>.webex.com/meet/<example>';
 
 // Customise your SMS message
 const MESSAGE = 'Please join my meeting at: ';
 
-// Add your own IMIConnect Webhook URL here
+// Enter the destination number you are using with your sandbox
+const TO = '+12345678910';
+
+// Enter the from number which your sandbox expects
+const FROM = '+12345678910';
+
+// Add your  Webhook URL here
 const IMI_URL = 'https://api-sandbox.imiconnect.io/v1/sms/messages';
-const IMI_SERVICE_KEY = '<IMIMobile Sandbox Service Key';
-
-
-const payload = {
-      "from": "CONNCT",
-      "to": MOBILE,
-      "content": MESSAGE+PMR_URL,
-      "contentType": "TEXT"
-  };
+const IMI_SERVICE_KEY = '##########';
 
 
 ///////////////////////////////////
@@ -26,7 +23,12 @@ const payload = {
 ///////////////////////////////////
 
 
-
+const payload = {
+      "from": FROM,
+      "to": TO,
+      "content": MESSAGE+PMR_URL,
+      "contentType": "TEXT"
+  };
 
 // Enable the HTTP client if it isn't already
 xapi.Config.HttpClient.Mode.get().then(value => {
@@ -62,7 +64,7 @@ xapi.command('UserInterface Extensions Panel Save', {
 function sendInvite(){
 
   console.log('Sending Invite');
-  console.log(payload)
+  console.log(payload);
 
 
   xapi.command('HttpClient Post', {
@@ -149,7 +151,7 @@ xapi.event.on('UserInterface Message Prompt Response', (event) => {
           console.log('PMR:' + PMR_URL);
           console.log('Dialling the PMR: ' + PMR_URL);
           xapi.command('Dial',{
-            Number: ((tempPMR != '') ? tempPMR : PMR_URL)
+            Number: PMR_URL
           })
           break;
         case '2':
