@@ -1,31 +1,17 @@
 # SMS-Macro
 
-The SMS invite macro allows you to send a meeting invitation meeting from your RoomOS devices to a mobile user via SMS. This macro use the IMI Connect as it SMS service. 
+The SMS invite Macro allows you to send a guest meeting invitation from a Webex Device to a mobile user via SMS. This Macro uses Webex Connect for its SMS service. Additionally, this Macro will automatically add the intial button on your devices touch interface.
 
 
+![output_Sg23R9](https://user-images.githubusercontent.com/21026209/161605701-a4d3b36a-a63a-47f1-8cdb-28560accca07.gif)
 
-## Snapshot of Webex Navigator screen with SMS Invite button:
-![image](https://user-images.githubusercontent.com/21026209/129073401-b7475e9d-6cff-4c31-b7e4-ec0d33d2cbe3.png)
-
-
-### Initial prompt for input:
-![image](https://user-images.githubusercontent.com/21026209/129073854-118b407f-e5e0-4808-bd8c-4cd15bb5f4f0.png)
-
-### Enter the mobile phone number:
-![image](https://user-images.githubusercontent.com/21026209/129073983-a1bc3eef-849c-4521-9455-1b20f61a03f9.png)
-
-### Change the invite information if needed:
-![image](https://user-images.githubusercontent.com/21026209/129074196-bdae1ee8-85c5-4184-9950-a37ad13ea3f8.png)
-
-### Enter alternative invite information:
-![image](https://user-images.githubusercontent.com/21026209/129074936-6a2458c6-9386-4baa-a722-668bf98202c7.png)
-
-### Hit send:
-![image](https://user-images.githubusercontent.com/21026209/129075140-ebdf310e-c529-4133-9337-dc5f6509af4a.png)
-
-### Confirmation invite was sent successfully and an option to automatically join the PMR:
-![image](https://user-images.githubusercontent.com/21026209/130437964-d5440801-8190-4429-b397-0c55d177ad42.png)
-
+## Using the Macro
+Once the Macro has been configured and running on your device:
+1. Tap the SMS Invite button
+2. Enter the number of the person you wish to invite
+3. Change the dafault Personal Meeting Room (PMR) URI if desired
+4. Hit send
+5. If the invite was sent succesfull, you will have the option to join the meeting automatically.
 
 
 ## Requirements
