@@ -1,4 +1,4 @@
-# SMS-Macro
+# SMS Geust Macro
 
 The SMS invite Macro allows you to send a guest meeting invitation from a Webex Device to a mobile user via SMS. This Macro uses Webex Connect for its SMS service. Additionally, this Macro will automatically add the intial button on your devices touch interface.
 
