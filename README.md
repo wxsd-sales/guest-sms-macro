@@ -17,7 +17,7 @@ This Webex Device macro lets you send a meeting link over SMS from your Webex De
 - Webex Connect instance or sandbox and a Webhook URL for your flow.
   - Link to create your own Webex Connect sandbox: https://imimobile.com/products/webex-connect/sandbox
 
-### Getting your Webhook URL from Webex Connect
+#### Getting your Webhook URL from Webex Connect
 
 1. Log into your Webex Connect instance and create a flow which connects a webhook to an SMS service
 ![image](https://user-images.githubusercontent.com/21026209/135327888-da36290f-2b67-44ea-baec-6881695ca287.png)
